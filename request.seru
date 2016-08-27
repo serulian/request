@@ -1,5 +1,5 @@
-from "github.com/Serulian/corelib:master" import SimpleError
 from "github.com/Serulian/corelib:master" import Promise
+from "github.com/Serulian/corelib:master" import SimpleError
 
 from webidl`xhr` import XMLHttpRequest
 
@@ -10,7 +10,7 @@ class HttpError {
 	var<Response> response
 
 	property<string> Message {
-		get {
+		get  {
 			return `Got non-OK response: ${this.response.StatusCode}: ${this.response.StatusText}`
 		}
 	}
@@ -21,7 +21,7 @@ class HttpError {
  */
 class RequestError {
 	property<string> Message {
-		get { return 'An error occurred when constructing the request' }
+		get  { return 'An error occurred when constructing the request' }
 	}
 }
 
@@ -42,21 +42,21 @@ type Response : responseData {
 	 * StatusCode holds the returned HTTP status code.
 	 */
 	property<int> StatusCode {
-		get { return responseData(this).StatusCode }
+		get  { return responseData(this).StatusCode }
 	}
 
 	/**
 	 * StatusText holds the returned HTTP status text.
 	 */
 	property<string> StatusText {
-		get { return responseData(this).StatusText }
+		get  { return responseData(this).StatusText }
 	}
 
 	/**
 	 * Text holds the returned body text, if any.
 	 */
 	property<string> Text {
-		get { return responseData(this).Text }
+		get  { return responseData(this).Text }
 	}
 
 	/**
@@ -64,11 +64,7 @@ type Response : responseData {
 	 * with an HttpError.
 	 */
 	function<Response> RejectOnFailure() {
-		if this.StatusCode / 100 != 2 {
-			reject HttpError{
-				response: this,
-			}
-		}
+		if this.StatusCode / 100 != 2 { reject HttpError{response: this} }
 		return this
 	}
 }
@@ -76,9 +72,7 @@ type Response : responseData {
 /**
  * Get executes a GET on the given URL.
  */
-function<Response> Get(url string) {
-	return Request.For('GET', url).Execute()
-}
+function<Response> Get(url string) { return Request.For('GET', url).Execute() }
 
 /**
  * Post executes a POST on the given URL, with the given body.
@@ -128,10 +122,7 @@ class Request {
 	 * For creates a new request for the given method and url.
 	 */
 	constructor For(method string, url string) {
-		return Request{
-			method: method,
-			url: url,
-		}
+		return Request{method: method, url: url}
 	}
 
 	/**
@@ -147,33 +138,30 @@ class Request {
 	 * be fulfilled once the request complete.
 	 */
 	function<Promise<Response>> ExecuteAndReturn() {
-		return Promise<Response>.Execute(
-			function<void>(resolve function<void>(Response), rejectNow function<void>(error)) {
-				var xhr = XMLHttpRequest.new()
-				xhr.open(this.method, this.url)
+		return Promise<Response>.Execute(function<void>(resolve function<void>(Response), rejectNow function<void>(error)) {
+			var xhr = XMLHttpRequest.new()
+			xhr.open(this.method, this.url)
 
-				xhr.addEventListener('load', function<void>() {
-					if int(xhr.readyState) == 4 {
-						resolve(Response(responseData{
-							StatusCode: int(xhr.status),
-							StatusText: string(xhr.statusText),
-							Text: string(xhr.responseText),
-						}))
-					}
-				})
-
-				xhr.addEventListener('error', function<void>() {
-					rejectNow(RequestError.new())
-				})
-
-				xhr.send(this.body)
+			xhr.addEventListener('load', function<void>() {
+				if int(xhr.readyState) == 4 {
+					resolve(Response(responseData{
+						StatusCode: int(xhr.status),
+						StatusText: string(xhr.statusText),
+						Text: string(xhr.responseText),
+					}))
+				}
 			})
+
+			xhr.addEventListener('error', function<void>() {
+				rejectNow(RequestError.new())
+			})
+
+			xhr.send(this.body)
+		})
 	}
 
 	/**
 	 * Execute executes the request, awaiting on its result.
 	 */
-	function<Response> Execute() {
-		return <- this.ExecuteAndReturn()
-	}
+	function<Response> Execute() { return <- this.ExecuteAndReturn() }
 }
