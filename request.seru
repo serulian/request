@@ -156,7 +156,10 @@ class Request {
 				rejectNow(RequestError.new())
 			})
 
-			xhr.send(this.body)
+			body := this.body
+			if body is not null {
+				xhr.send(&body)
+			}
 		})
 	}
 
