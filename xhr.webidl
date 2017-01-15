@@ -1,4 +1,3 @@
-[Global]
 [Constructor()]
 interface XMLHttpRequest {
 	attribute Number status;
