@@ -1,5 +1,5 @@
-from "github.com/Serulian/corelib:master" import Promise
-from "github.com/Serulian/corelib:master" import SimpleError
+from "github.com/serulian/corelib:master" import Promise
+from "github.com/serulian/corelib:master" import SimpleError
 
 from webidl`xhr` import XMLHttpRequest
 
