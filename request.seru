@@ -1,4 +1,4 @@
-from "@core" import Promise, SimpleError
+from @core import Promise, SimpleError
 
 from webidl`xhr` import XMLHttpRequest
 
@@ -6,10 +6,10 @@ from webidl`xhr` import XMLHttpRequest
  * HttpError represents a request due to a non-2XX error.
  */
 class HttpError {
-	var<Response> response
+	var response Response
 
-	property<string> Message {
-		get  {
+	property Message string {
+		get {
 			return `Got non-OK response: ${this.response.StatusCode}: ${this.response.StatusText}`
 		}
 	}
@@ -19,8 +19,10 @@ class HttpError {
  * RequestError represents an error in the request being made.
  */
 class RequestError {
-	property<string> Message {
-		get  { return 'An error occurred when constructing the request' }
+	property Message string {
+		get {
+			return 'An error occurred when constructing the request'
+		}
 	}
 }
 
@@ -40,30 +42,32 @@ type Response : responseData {
 	/**
 	 * StatusCode holds the returned HTTP status code.
 	 */
-	property<int> StatusCode {
-		get  { return responseData(this).StatusCode }
+	property StatusCode int {
+		get { return responseData(this).StatusCode }
 	}
 
 	/**
 	 * StatusText holds the returned HTTP status text.
 	 */
-	property<string> StatusText {
-		get  { return responseData(this).StatusText }
+	property StatusText string {
+		get { return responseData(this).StatusText }
 	}
 
 	/**
 	 * Text holds the returned body text, if any.
 	 */
-	property<string> Text {
-		get  { return responseData(this).Text }
+	property Text string {
+		get { return responseData(this).Text }
 	}
 
 	/**
 	 * RejectOnFailure ensures that the status code is in the 2XX family. If not, rejects
 	 * with an HttpError.
 	 */
-	function<Response> RejectOnFailure() {
-		if this.StatusCode / 100 != 2 { reject HttpError{response: this} }
+	function RejectOnFailure() Response {
+		if this.StatusCode / 100 != 2 {
+			reject HttpError{response: this}
+		}
 		return this
 	}
 }
@@ -71,33 +75,35 @@ type Response : responseData {
 /**
  * Get executes a GET on the given URL.
  */
-function<Response> Get(url string) { return Request.For('GET', url).Execute() }
+function Get(url string) Response {
+	return Request.For('GET', url).Execute()
+}
 
 /**
  * Post executes a POST on the given URL, with the given body.
  */
-function<Response> Post(url string, body string) {
+function Post(url string, body string) Response {
 	return Request.For('POST', url).WithBody(body).Execute()
 }
 
 /**
  * Put executes a PUT on the given URL, with the given body.
  */
-function<Response> Put(url string, body string) {
+function Put(url string, body string) Response {
 	return Request.For('PUT', url).WithBody(body).Execute()
 }
 
 /**
  * Patch executes a PATCH on the given URL, with the given body.
  */
-function<Response> Patch(url string, body string) {
+function Patch(url string, body string) Response {
 	return Request.For('PATCH', url).WithBody(body).Execute()
 }
 
 /**
  * Delete executes a DELETE on the given URL.
  */
-function<Response> Delete(url string) {
+function Delete(url string) Response {
 	return Request.For('DELETE', url).Execute()
 }
 
@@ -105,7 +111,7 @@ function<Response> Delete(url string) {
  * GetURLContents performs an XHR load of the specified URL, returning the contents of
  * the body or raising an HttpError if the request was not successful.
  */
-function<string> GetURLContents(url string) {
+function GetURLContents(url string) string {
 	return Get(url).RejectOnFailure().Text
 }
 
@@ -113,9 +119,9 @@ function<string> GetURLContents(url string) {
  * Request represents a single request via XHR to an external URL.
  */
 class Request {
-	var<string> method
-	var<string> url
-	var<string?> body
+	var method string
+	var url string
+	var body string?
 
 	/**
 	 * For creates a new request for the given method and url.
@@ -127,7 +133,7 @@ class Request {
 	/**
 	 * WithBody sents the body that will be sent along with this request.
 	 */
-	function<Request> WithBody(body string) {
+	function WithBody(body string) Request {
 		this.body = body
 		return this
 	}
@@ -136,12 +142,12 @@ class Request {
 	 * ExecuteAndReturn executes the request, returning a promise that will
 	 * be fulfilled once the request complete.
 	 */
-	function<Promise<Response>> ExecuteAndReturn() {
-		return Promise<Response>.Execute(function<void>(resolve function<void>(Response), rejectNow function<void>(error)) {
+	function ExecuteAndReturn() Promise<Response> {
+		return Promise<Response>.Execute(function(resolve function<void>(Response), rejectNow function<void>(error)) {
 			var xhr = XMLHttpRequest.new()
 			xhr.open(this.method, this.url)
 
-			xhr.addEventListener('load', function<void>() {
+			xhr.addEventListener('load', function() {
 				if int(xhr.readyState) == 4 {
 					resolve(Response(responseData{
 						StatusCode: int(xhr.status),
@@ -151,7 +157,7 @@ class Request {
 				}
 			})
 
-			xhr.addEventListener('error', function<void>() {
+			xhr.addEventListener('error', function() {
 				rejectNow(RequestError.new())
 			})
 
@@ -162,5 +168,7 @@ class Request {
 	/**
 	 * Execute executes the request, awaiting on its result.
 	 */
-	function<Response> Execute() { return <- this.ExecuteAndReturn() }
+	function Execute() Response {
+		return <- this.ExecuteAndReturn()
+	}
 }
